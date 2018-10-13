@@ -48,7 +48,7 @@ async function inform(chat, witness, missed) {
 
 let PROPS = null;
 
-const DELAY = 1000 * 60 * 30;
+const DELAY = 1000 * 60 * 3;
 const LONG_DELAY = 1000 * 60 * 15;
 
 let bn = 0;
