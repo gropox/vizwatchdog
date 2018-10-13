@@ -1,0 +1,25 @@
+{
+  "name": "vizwatchdog",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gropox/vizwatchdog.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gropox/vizwatchdog/issues"
+  },
+  "homepage": "https://github.com/gropox/vizwatchdog#readme",
+  "dependencies": {
+    "basescript": "0.0.4",
+    "nedb": "^1.8.0",
+    "telebot": "^1.2.6",
+    "viz-world-js": "^0.9.9"
+  }
+}

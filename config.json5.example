@@ -1,0 +1,9 @@
+{
+    ws : "wss://ws.viz.ropox.tools",
+
+
+    telegram: {
+        token : "888888888:EEEEEEEEEEEEEEEEEEEEEEEEEEE",
+        admin_chat : 3423423,
+    }
+}
