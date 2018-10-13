@@ -40,9 +40,24 @@ async function onMsg(msg) {
     }
 }
 
+function get_text_blocks(missed) {
+    if(missed > 20) {
+        missed = missed % 10;
+    }
+
+    if(missed == 1 ) {
+        return "блок";
+    } else if(missed >= 2 && missed <= 4) {
+        return "блока";
+    } else {
+        return "блоков";
+    }
+}
+
 async function inform(chat, witness, missed) {
     let username = (chat.witness == witness.owner?" (@"+chat.username+")":"");
-    await telegram.send(chat.chat_id, `Делегат ${witness.owner}${username} пропустил ${missed} блоков!`);
+    let text_blocks = get_text_blocks(missed);
+    await telegram.send(chat.chat_id, `Делегат ${witness.owner}${username} пропустил ${missed} ${text_blocks}!`);
 }
 
 
@@ -103,10 +118,27 @@ setInterval(() => {
     if(last_bn == bn) {
 
         //TODO: inform admin about stop
-
-        process.exit(1);
+        try {
+            telegram.send(CONFIG.telegram.admin_chat, `Watchdog перестал получать новые блоки и будет перезагружен`).then(() => {
+                process.exit(1);
+            });
+        } catch(e) {
+            process.exit(1);
+        }
     }
     last_bn = bn;
 }, LONG_DELAY); 
 
 run();
+
+/*
+
+ TESTS
+ 
+for(let i = 0; i < 111; i++) {
+    log.debug(i, get_text_blocks(i));
+}
+
+telegram.init((m) => log.debug(m)).then(()=> 
+inform({chat_id: CONFIG.telegram.admin_chat, username: "gropox", witness: "opox"}, {owner: "ropox"}, 6).then(() => process.exit(0)));
+*/
