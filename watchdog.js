@@ -11,32 +11,53 @@ if(CONFIG.ws) {
 
 const telegram = require("./telegram");
 const memory = require("./memory");
+const m = require("./messages");
 
-async function processMessage(chat_id, username, msg) {
+async function processMessage(chat, msg) {
     if(!msg || !msg.match("^[a-z0-9.-]+$")) {
-        await telegram.send(chat_id, "Введенное не является именем делегата");
+        await telegram.send(chat.chat_id, "Введенное не является именем делегата");
         return;
     }
     const witness = await viz.api.getWitnessByAccountAsync(msg);
     if(!witness || !witness.owner || witness.owner != msg) {
-        await telegram.send(chat_id, "Такой делегат не найден");
+        await telegram.send(chat.chat_id, "Такой делегат не найден");
         return;
     }
-    await memory.saveChat(chat_id, username, msg);
-    await telegram.send(chat_id, "Добро пожаловать делегат @" + msg + "!");
+    chat.witness = msg;
+    await telegram.send(chat.chat_id, "Добро пожаловать делегат @" + msg + "!");
+}
+
+async function switchWatchAll(chat) {
+    chat.watchall = !chat.watchall;
+    await telegram.send(chat.chat_id, m.watchall_switch(chat));
 }
 
 async function onMsg(msg) {
     log.trace("onMsg", msg);
     const chat_id = msg.from.id; 
     const username = msg.from.username;
-    switch(msg.text) {
-        case "/start": {
-            await memory.saveChat(chat_id, username);
-            await telegram.send(chat_id, "Привет, я бот, который наблюдает за делегатами. Введи имя делегата, если хочешь получать персонализированные уведомления.")
-        }; break;
-        default:
-            await processMessage(chat_id, username, msg.text);
+    try {
+
+        const chat = await memory.getChat(chat_id);
+        chat.username = username; //update always, can change
+    
+        switch(msg.text) {
+            case "/start": {
+                chat.username = username;
+                await telegram.send(chat_id, "Привет, я бот, который наблюдает за делегатами. Введи имя делегата, если хочешь получать персонализированные уведомления.")
+            }; break;
+            case "/help": {
+                await telegram.send(chat_id, m.help())
+            }; break;
+            case "/watchall": {
+                await switchWatchAll(chat);
+            }; break;
+            default:
+                await processMessage(chat, msg.text);
+        }
+        await memory.saveChat(chat);
+    } catch(e) {
+        log.error("Error in onMsg", e)
     }
 }
 
@@ -54,10 +75,19 @@ function get_text_blocks(missed) {
     }
 }
 
-async function inform(chat, witness, missed) {
+async function informMissing(chat, witness, missed) {
+    if(!chat.isWatching(witness.owner)) {return};
     let username = (chat.witness == witness.owner?" (@"+chat.username+")":"");
     let text_blocks = get_text_blocks(missed);
     await telegram.send(chat.chat_id, `Делегат ${witness.owner}${username} пропустил ${missed} ${text_blocks}!`);
+}
+
+async function informVersion(chat, witness, missed) {
+    if(!chat.isWatching(witness.owner)) {return};
+
+    let username = (chat.witness == witness.owner?" (@"+chat.username+")":"");
+    let text_blocks = get_text_blocks(missed);
+    await telegram.send(chat.chat_id, `Делегат ${witness.owner}${username} установил новую версию ${witness.running_version}`);
 }
 
 
@@ -93,18 +123,22 @@ async function run() {
                     missed =  w.total_missed - saved.total_missed;
                     if(missed) {
                         let chats = await memory.loadChats();
-                        
                         for(let chat of chats) {
-                            await inform(chat, w, missed);
+                            await informMissing(chat, w, missed);
+                        }
+                    }
+
+                    if(saved.running_version != w.running_version) {
+                        let chats = await memory.loadChats();
+                        for(let chat of chats) {
+                            await informVersion(chat, w);
                         }
                     }
                 } 
 
-                if(!saved || w.total_missed !== saved.total_missed || missed !== saved.prev_missed) {
-                    log.debug("\tsave witness", w.owner);
-                    w.prev_missed = missed;
-                    await memory.saveWitness(w);
-                }
+
+                w.prev_missed = missed;
+                await memory.saveWitness(w);
             }
         } catch (e) {
             log.error("error in main loop", e);
@@ -134,7 +168,7 @@ run();
 /*
 
  TESTS
- 
+
 for(let i = 0; i < 111; i++) {
     log.debug(i, get_text_blocks(i));
 }
