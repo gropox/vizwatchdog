@@ -7,13 +7,18 @@ const telebot = require("telebot");
 let bot = null;
 
 async function send(chat_id, msg, kbd) {
-    let opts = { parse: "Markdown" };
-    log.debug("msg", msg);
-    log.debug("kbd", kbd);
-    if (kbd) {
-        opts.markup = kbd;
+    try {
+        let opts = { parse: "Markdown" };
+        log.debug("msg", msg);
+        log.debug("kbd", kbd);
+        if (kbd) {
+            opts.markup = kbd;
+        }
+        return bot.sendMessage(chat_id, msg, opts)
+    } catch(e) {
+        log.error("unable to send message")
+        log.error(e);
     }
-    return bot.sendMessage(chat_id, msg, opts)
 }
 
 async function init(onMsg) {
