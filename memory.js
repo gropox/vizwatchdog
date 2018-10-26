@@ -89,13 +89,14 @@ async function loadWitness(owner) {
 
 async function getChat(chat_id) {
 
-    let chat =  new Promise((resolve, reject) => {
+    let chat =  await new Promise((resolve, reject) => {
         dbChats.findOne({chat_id}, {}, (err, chat) => {
             if(err) {
                 reject(err);
             }
             log.debug("saved chat", chat_id, chat);
             if(!chat) {
+                log.debug("no chat found resolve to null")
                 resolve(null);
             } else {
                 const chobj = new Chat(chat_id);
@@ -109,7 +110,7 @@ async function getChat(chat_id) {
         chat = new Chat(chat_id);
         await saveChat(chat);
     }
-
+    log.info("return chat", chat);
     return chat;
 }
 
