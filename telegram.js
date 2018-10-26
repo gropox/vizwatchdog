@@ -8,13 +8,13 @@ let bot = null;
 
 async function send(chat_id, msg, kbd) {
     try {
-        let opts = { parse: "Markdown" };
+        let opts = { parse: "HTML" };
         log.debug("msg", msg);
         log.debug("kbd", kbd);
         if (kbd) {
             opts.markup = kbd;
         }
-        return bot.sendMessage(chat_id, msg, opts)
+        await bot.sendMessage(chat_id, msg, opts)
     } catch(e) {
         log.error("unable to send message")
         log.error(e);
