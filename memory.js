@@ -97,10 +97,11 @@ async function getChat(chat_id) {
             log.debug("saved chat", chat_id, chat);
             if(!chat) {
                 resolve(null);
+            } else {
+                const chobj = new Chat(chat_id);
+                chobj.fromJson(chat)
+                resolve(chobj);
             }
-            const chobj = new Chat(chat_id);
-            chobj.fromJson(chat)
-            resolve(chobj);
         });
     });
 
