@@ -96,7 +96,7 @@ async function getChat(chat_id) {
             }
             log.debug("saved chat", chat_id, chat);
             if(!chat) {
-                throw new Error("no chat!", chat_id);
+                resolve(null);
             }
             const chobj = new Chat(chat_id);
             chobj.fromJson(chat)
@@ -125,7 +125,7 @@ async function saveChat(chat) {
             }
             log.debug("saved chat", chat);
             if(cnt == 0) {
-                throw new Error("no chats!")
+                log.error("unknown chat", chat);
             }
             resolve(chat);
         });
