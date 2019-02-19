@@ -34,7 +34,9 @@ async function sendVersions(chat) {
     const so = await viz.api.getWitnessScheduleAsync();
     const witnesses = await viz.api.getWitnessesByVoteAsync("", 100);
 
-    const acc = witnesses.reduce((acc, w, i) => {
+    const acc = witnesses
+    .filter(w => w.signing_key != EMPTY_KEY)
+    .reduce((acc, w, i) => {
         acc.all[w.running_version] = ++acc.all[w.running_version] || 1;
         if(i < 11) {
             acc.top[w.running_version] = ++acc.top[w.running_version] || 1;
