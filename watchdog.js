@@ -45,6 +45,7 @@ async function onMsg(msg) {
         switch(msg.text) {
             case "/start": {
                 chat.username = username;
+                chat.witness = null;
                 await telegram.send(chat_id, "Привет, я бот, который наблюдает за делегатами. Введи имя делегата, если хочешь получать персонализированные уведомления.")
             }; break;
             case "/help": {
